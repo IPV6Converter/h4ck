@@ -5,69 +5,20 @@
 <title>Conversor IPv6 ↔ Decimal BGP</title>
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-        background: #f4f4f7;
-        color: #222;
-    }
-
+    body { font-family: Arial; background:#f4f4f7; color:#222; margin:0; padding:0; }
     @media (prefers-color-scheme: dark) {
-        body { background: #1e1e1e; color: #eee; }
-        .card { background: #2a2a2a; }
-        input, textarea { background: #333; color: #eee; border: 1px solid #555; }
+        body { background:#1e1e1e; color:#eee; }
+        .card { background:#2a2a2a; }
+        input, textarea { background:#333; color:#eee; border:1px solid #555; }
     }
-
-    h1 {
-        text-align: center;
-        margin-top: 30px;
-        font-size: 30px;
-    }
-
-    .container {
-        max-width: 800px;
-        margin: 40px auto;
-        padding: 0 20px;
-    }
-
-    .card {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        margin-bottom: 25px;
-    }
-
-    input, textarea {
-        width: 100%;
-        padding: 12px;
-        margin-top: 10px;
-        font-size: 16px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        box-sizing: border-box;
-    }
-
-    textarea { height: 70px; resize: none; }
-
-    .btn-row { text-align: center; margin-top: 18px; }
-
-    button {
-        background: #0078ff;
-        color: white;
-        border: none;
-        padding: 12px 28px;
-        font-size: 16px;
-        border-radius: 999px;
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-    button:hover {
-        background: #005fcc;
-        transform: scale(1.05);
-    }
+    h1 { text-align:center; margin-top:30px; }
+    .container { max-width:800px; margin:40px auto; padding:0 20px; }
+    .card { background:white; padding:20px; border-radius:10px; box-shadow:0 4px 20px rgba(0,0,0,0.1); margin-bottom:25px; }
+    input, textarea { width:100%; padding:12px; margin-top:10px; font-size:16px; border-radius:8px; border:1px solid #ccc; }
+    textarea { height:70px; resize:none; }
+    .btn-row { text-align:center; margin-top:18px; }
+    button { background:#0078ff; color:white; border:none; padding:12px 28px; font-size:16px; border-radius:999px; cursor:pointer; }
+    button:hover { background:#005fcc; transform:scale(1.05); }
 </style>
 </head>
 
@@ -144,16 +95,17 @@ function ipv6ToDecimal(ip) {
     return dec.join(".");
 }
 
-// decimal → IPv6 (corregido)
+// decimal → IPv6 (ARREGLADO)
 function decimalToIPv6(decString) {
     let parts = decString.split(".").map(x => x.trim()).filter(x => x !== "");
 
-    // Si hay dos direcciones, nos quedamos con la última
+    // Si hay más de 18 números, nos quedamos con los últimos 18
     if (parts.length > 18) parts = parts.slice(parts.length - 18);
 
-    // Si empieza por 0.2, quitamos ese prefijo
+    // Si empieza por 0.2, quitamos esos dos
     if (parts[0] === "0" && parts[1] === "2") parts = parts.slice(2);
 
+    // Ahora deben quedar EXACTAMENTE 16 números
     if (parts.length !== 16) throw new Error("Formato decimal inválido");
 
     let hex = [];
