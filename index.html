@@ -6,20 +6,15 @@
 
 <style>
     :root {
-        --primary: #0078ff;
-        --primary-dark: #005fcc;
-        --bg-light: #f4f4f7;
-        --card-bg: #ffffff;
-        --text-main: #222;
-        --accent: #ff9800;
-    }
-
-    @media (prefers-color-scheme: dark) {
-        :root {
-            --bg-light: #121212;
-            --card-bg: #1f1f1f;
-            --text-main: #f5f5f5;
-        }
+        --primary: #4f8cff;
+        --primary-dark: #2f6be0;
+        --bg-light: #f5f7fa;
+        --bg-dark: #1b1d22;
+        --card-light: #ffffff;
+        --card-dark: #26282e;
+        --text-light: #222;
+        --text-dark: #eee;
+        --accent: #ffb300;
     }
 
     body {
@@ -27,19 +22,40 @@
         margin: 0;
         padding: 0;
         background: var(--bg-light);
-        color: var(--text-main);
+        color: var(--text-light);
+        transition: 0.3s;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        body {
+            background: var(--bg-dark);
+            color: var(--text-dark);
+        }
+        .card {
+            background: var(--card-dark);
+        }
+        input, textarea {
+            background: #333;
+            color: #eee;
+            border: 1px solid #555;
+        }
+        .hint {
+            color: #aaa;
+        }
     }
 
     h1 {
         text-align: center;
         margin-top: 30px;
-        font-size: 32px;
+        font-size: 34px;
+        font-weight: 600;
     }
 
     .subtitle {
         text-align: center;
-        color: #777;
+        color: #666;
         margin-top: 5px;
+        font-size: 15px;
     }
 
     .container {
@@ -49,12 +65,13 @@
     }
 
     .card {
-        background: var(--card-bg);
+        background: var(--card-light);
         padding: 25px;
-        border-radius: 12px;
+        border-radius: 14px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.12);
         margin-bottom: 25px;
         border-top: 4px solid var(--primary);
+        transition: 0.3s;
     }
 
     .card h3 {
@@ -83,7 +100,6 @@
         border-radius: 8px;
         border: 1px solid #ccc;
         box-sizing: border-box;
-        background: rgba(255,255,255,0.9);
     }
 
     textarea {
@@ -105,13 +121,13 @@
         border-radius: 999px;
         cursor: pointer;
         transition: 0.2s;
-        box-shadow: 0 3px 10px rgba(0,120,255,0.4);
+        box-shadow: 0 3px 10px rgba(79,140,255,0.4);
     }
 
     button:hover {
         background: var(--primary-dark);
         transform: translateY(-1px) scale(1.03);
-        box-shadow: 0 5px 16px rgba(0,120,255,0.55);
+        box-shadow: 0 5px 16px rgba(79,140,255,0.55);
     }
 
     .hint {
@@ -119,24 +135,13 @@
         color: #888;
         margin-top: 6px;
     }
-
-    @media (prefers-color-scheme: dark) {
-        input, textarea {
-            background: #2a2a2a;
-            color: #f5f5f5;
-            border: 1px solid #555;
-        }
-        .hint {
-            color: #aaa;
-        }
-    }
 </style>
 </head>
 
 <body>
 
 <h1>Conversor IPv6 ↔ Decimal BGP</h1>
-<p class="subtitle">Pega una IPv6, un decimal BGP o una línea completa de “BGP Status Peer”</p>
+<p class="subtitle">Convierte IPv6, decimal BGP o líneas completas de “BGP Status Peer”</p>
 
 <div class="container">
 
@@ -144,7 +149,7 @@
         <h3><span class="pill">Entrada</span> Dirección o línea BGP</h3>
         <input id="input" placeholder="Ej: fd00:0:1:ab::2  ·  0.2.253.0.0.0.1.0.171...  ·  BGP Status Peer ...">
         <p class="hint">
-            Ejemplo BGP: BGP Status Peer 0.2.253.0.0.0.0.1.0.171.0.0.0.0.0.0.0.1.2.253.0.0.0.0.1.0.171.0.0.0.0.0.0.0.2
+            Ejemplo: BGP Status Peer 0.2.253.0.0.0.0.1.0.171.0.0.0.0.0.0.0.1.2.253.0.0.0.0.1.0.171.0.0.0.0.0.0.0.2
         </p>
         <div class="btn-row">
             <button onclick="convert()">Convertir</button>
@@ -162,10 +167,10 @@
 </div>
 
 <script>
-// Expande IPv6 abreviada a 8 bloques de 4 hex
+// Expande IPv6 abreviada
 function expandIPv6(ip) {
     let parts = ip.split("::");
-    let left = parts[0].length ? parts[0].split(":") : [];
+    let left = parts[0] ? parts[0].split(":") : [];
     let right = parts[1] ? parts[1].split(":") : [];
     let missing = 8 - (left.length + right.length);
     let zeros = Array(missing).fill("0000");
@@ -182,18 +187,11 @@ function compressIPv6(blocks) {
             if (curStart === -1) curStart = i;
             curLen++;
         } else {
-            if (curLen > bestLen) {
-                bestLen = curLen;
-                bestStart = curStart;
-            }
-            curStart = -1;
-            curLen = 0;
+            if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
+            curStart = -1; curLen = 0;
         }
     }
-    if (curLen > bestLen) {
-        bestLen = curLen;
-        bestStart = curStart;
-    }
+    if (curLen > bestLen) { bestLen = curLen; bestStart = curStart; }
 
     let pretty = blocks.map(b => b.replace(/^0+/, "") || "0").join(":");
 
@@ -208,38 +206,35 @@ function compressIPv6(blocks) {
     return pretty;
 }
 
-// IPv6 → decimal BGP (con prefijo 0.2)
+// IPv6 → decimal BGP
 function ipv6ToDecimal(ip) {
     let blocks = expandIPv6(ip);
-    let dec = [];
-
-    // Prefijo 0.2 como en tus BGP
-    dec.push(0);
-    dec.push(2);
+    let dec = [0, 2]; // prefijo BGP
 
     blocks.forEach(b => {
         dec.push(parseInt(b.slice(0,2),16));
         dec.push(parseInt(b.slice(2,4),16));
     });
+
     return dec.join(".");
 }
 
-// decimal → IPv6 abreviada (soportando prefijo 0.2 y líneas largas)
+// decimal → IPv6 (corregido)
 function decimalToIPv6(decString) {
     let parts = decString.split(".").map(x => x.trim()).filter(x => x !== "");
 
-    // Si viene una línea larga (dos direcciones), nos quedamos con la última parte
+    // Si hay dos direcciones, nos quedamos con la última
     if (parts.length > 18) {
         parts = parts.slice(parts.length - 18);
     }
 
-    // Si empieza por 0.2, quitamos ese prefijo y usamos los 16 siguientes
-    if (parts.length === 18 && parts[0] === "0" && parts[1] === "2") {
+    // Si empieza por 0.2, quitamos ese prefijo
+    if (parts[0] === "0" && parts[1] === "2") {
         parts = parts.slice(2);
     }
 
     if (parts.length !== 16) {
-        throw new Error("Número de campos decimal no válido para IPv6");
+        throw new Error("Formato decimal inválido para IPv6");
     }
 
     let hex = [];
@@ -249,10 +244,11 @@ function decimalToIPv6(decString) {
             Number(parts[i+1]).toString(16).padStart(2,"0")
         );
     }
+
     return compressIPv6(hex);
 }
 
-// Detección automática y conversión
+// Detección automática
 function convert() {
     let raw = document.getElementById("input").value.trim();
     let ipv6Out = document.getElementById("ipv6_out");
@@ -261,32 +257,20 @@ function convert() {
     ipv6Out.value = "";
     decOut.value = "";
 
-    if (!raw) {
-        ipv6Out.value = "No hay entrada";
-        return;
-    }
-
-    // Quitar prefijo "BGP Status Peer"
     raw = raw.replace(/^BGP Status Peer\s+/i, "").trim();
 
     try {
         if (raw.includes(":")) {
-            // Entrada IPv6
-            let ipv6Compressed = compressIPv6(expandIPv6(raw));
-            let decimal = ipv6ToDecimal(raw);
-            ipv6Out.value = ipv6Compressed;
-            decOut.value = decimal;
+            ipv6Out.value = compressIPv6(expandIPv6(raw));
+            decOut.value = ipv6ToDecimal(raw);
         } else if (raw.includes(".")) {
-            // Entrada decimal (o línea BGP ya limpia)
-            let ipv6 = decimalToIPv6(raw);
-            let decimalNorm = raw.split(".").map(x => x.trim()).filter(x => x !== "").join(".");
-            ipv6Out.value = ipv6;
-            decOut.value = decimalNorm;
+            ipv6Out.value = decimalToIPv6(raw);
+            decOut.value = raw;
         } else {
-            ipv6Out.value = "Entrada no válida (no parece IPv6 ni decimal BGP)";
+            ipv6Out.value = "Entrada no válida";
         }
     } catch (e) {
-        ipv6Out.value = "Error al convertir: " + e.message;
+        ipv6Out.value = "Error: " + e.message;
     }
 }
 </script>
