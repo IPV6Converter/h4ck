@@ -141,21 +141,6 @@
       color: var(--error);
     }
 
-    .example {
-      margin-top: 25px;
-      font-size: 14px;
-      color: var(--muted);
-      background: rgba(255,255,255,0.03);
-      border-radius: 12px;
-      padding: 18px;
-      line-height: 1.8;
-    }
-
-    code {
-      color: #93c5fd;
-      word-break: break-all;
-    }
-
     @media (max-width: 700px) {
       h1 {
         font-size: 30px;
@@ -196,24 +181,6 @@
   <div class="result">
     <div class="label">Resultado:</div>
     <div class="output" id="output">---</div>
-  </div>
-
-  <div class="example">
-    <strong>Ejemplo:</strong><br><br>
-
-    <code>
-      BGP Status Peer 0.2.253.0.0.0.0.1.0.171.0.0.0.0.0.0.0.1.2.253.0.0.0.0.1.0.171.0.0.0.0.0.0.0.2
-    </code>
-
-    <br><br>
-
-    →
-
-    <br><br>
-
-    <code>
-      fd00:0:1:ab::2
-    </code>
   </div>
 
 </div>
@@ -270,17 +237,15 @@
 
     try {
 
-      // Sacar todos los números
       const matches = input.match(/\d+/g);
 
       if (!matches || matches.length < 16) {
         throw new Error("No se encontraron suficientes bytes");
       }
 
-      // Convertir a enteros
       const allBytes = matches.map(v => parseInt(v, 10));
 
-      // Quedarse con los últimos 16 bytes
+      // Usar los últimos 16 bytes válidos
       const bytes = allBytes.slice(-16);
 
       const groups = [];
