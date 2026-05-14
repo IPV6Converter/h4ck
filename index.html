@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Conversor IPv6 ↔ Decimal BGP</title>
+</head>
+<body>
+
+<h2>Conversor IPv6 ↔ Decimal BGP</h2>
+
+<h3>IPv6 → Decimal</h3>
+<input id="ipv6" placeholder="fd00:0:1:ab::2">
+<button onclick="toDecimal()">Convertir</button>
+<p id="out1"></p>
+
+<h3>Decimal → IPv6</h3>
+<input id="decimal" placeholder="253.0.0.0.0.1.0.171.0.0.0.0.0.0.0.2">
+<button onclick="toIPv6()">Convertir</button>
+<p id="out2"></p>
+
+<script>
+function expandIPv6(ip) {
+    let full = ip.split("::");
+    let left = full[0].split(":");
+    let right = full[1] ? full[1].split(":") : [];
+    let missing = 8 - (left.length + right.length);
+    let zeros = Array(missing).fill("0000");
+    let fullBlocks = [...left, ...zeros, ...right];
+    return fullBlocks.map(b => b.padStart(4,"0"));
+}
+
+function toDecimal() {
+    let ip = document.getElementById("ipv6").value;
+    let blocks = expandIPv6(ip);
+    let dec = [];
+    blocks.forEach(b => {
+        dec.push(parseInt(b.slice(0,2),16));
+        dec.push(parseInt(b.slice(2,4),16));
+    });
+    document.getElementById("out1").innerText = dec.join(".");
+}
+
+function toIPv6() {
+    let dec = document.getElementById("decimal").value.split(".");
+    if (dec.length !== 16) {
+        document.getElementById("out2").innerText = "Formato inválido";
+        return;
+    }
+    let hex = [];
+    for (let i=0; i<16; i+=2) {
+        hex.push(
+            Number(dec[i]).toString(16).padStart(2,"0") +
+            Number(dec[i+1]).toString(16).padStart(2,"0")
+        );
+    }
+    document.getElementById("out2").innerText = hex.join(":");
+}
+</script>
+
+</body>
+</html>
