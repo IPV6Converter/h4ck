@@ -5,36 +5,24 @@
 <title>Conversor IPv6 ↔ Decimal BGP</title>
 
 <style>
-    :root {
-        --primary: #4f8cff;
-        --primary-dark: #2f6be0;
-        --bg-light: #f5f7fa;
-        --bg-dark: #1b1d22;
-        --card-light: #ffffff;
-        --card-dark: #26282e;
-        --text-light: #222;
-        --text-dark: #eee;
-    }
-
     body {
-        font-family: "Segoe UI", Arial, sans-serif;
+        font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
-        background: var(--bg-light);
-        color: var(--text-light);
-        transition: 0.3s;
+        background: #f4f4f7;
+        color: #222;
     }
 
     @media (prefers-color-scheme: dark) {
-        body { background: var(--bg-dark); color: var(--text-dark); }
-        .card { background: var(--card-dark); }
+        body { background: #1e1e1e; color: #eee; }
+        .card { background: #2a2a2a; }
         input, textarea { background: #333; color: #eee; border: 1px solid #555; }
     }
 
     h1 {
         text-align: center;
         margin-top: 30px;
-        font-size: 32px;
+        font-size: 30px;
     }
 
     .container {
@@ -44,12 +32,11 @@
     }
 
     .card {
-        background: var(--card-light);
+        background: white;
         padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         margin-bottom: 25px;
-        border-top: 4px solid var(--primary);
     }
 
     input, textarea {
@@ -67,7 +54,7 @@
     .btn-row { text-align: center; margin-top: 18px; }
 
     button {
-        background: var(--primary);
+        background: #0078ff;
         color: white;
         border: none;
         padding: 12px 28px;
@@ -78,7 +65,7 @@
     }
 
     button:hover {
-        background: var(--primary-dark);
+        background: #005fcc;
         transform: scale(1.05);
     }
 </style>
