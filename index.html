@@ -3,57 +3,122 @@
 <head>
 <meta charset="UTF-8">
 <title>Conversor IPv6 ↔ Decimal BGP</title>
+<style>
+body { font-family: Arial; margin: 40px; }
+input, textarea { width: 100%; padding: 10px; margin-top: 10px; font-size: 16px; }
+button { padding: 10px 20px; margin-top: 15px; font-size: 16px; cursor: pointer; }
+.box { border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+</style>
 </head>
 <body>
 
 <h2>Conversor IPv6 ↔ Decimal BGP</h2>
 
-<h3>IPv6 → Decimal</h3>
-<input id="ipv6" placeholder="fd00:0:1:ab::2">
-<button onclick="toDecimal()">Convertir</button>
-<p id="out1"></p>
+<div class="box">
+    <h3>Entrada (IPv6, decimal o línea BGP)</h3>
+    <input id="input" placeholder="fd00:0:1:ab::2  ó  253.0.0.0...  ó  BGP Status Peer ...">
+    <button onclick="convert()">Convertir</button>
+</div>
 
-<h3>Decimal → IPv6</h3>
-<input id="decimal" placeholder="253.0.0.0.0.1.0.171.0.0.0.0.0.0.0.2">
-<button onclick="toIPv6()">Convertir</button>
-<p id="out2"></p>
+<div class="box">
+    <h3>Resultado IPv6 abreviada</h3>
+    <textarea id="ipv6_out" rows="2" readonly></textarea>
+
+    <h3>Resultado decimal BGP</h3>
+    <textarea id="dec_out" rows="2" readonly></textarea>
+</div>
 
 <script>
+// Expande IPv6 abreviada
 function expandIPv6(ip) {
-    let full = ip.split("::");
-    let left = full[0].split(":");
-    let right = full[1] ? full[1].split(":") : [];
+    let parts = ip.split("::");
+    let left = parts[0].split(":");
+    let right = parts[1] ? parts[1].split(":") : [];
     let missing = 8 - (left.length + right.length);
     let zeros = Array(missing).fill("0000");
-    let fullBlocks = [...left, ...zeros, ...right];
-    return fullBlocks.map(b => b.padStart(4,"0"));
+    return [...left, ...zeros, ...right].map(b => b.padStart(4,"0"));
 }
 
-function toDecimal() {
-    let ip = document.getElementById("ipv6").value;
+// Comprime IPv6 (la parte que te faltaba)
+function compressIPv6(blocks) {
+    let ipv6 = blocks.join(":");
+
+    ipv6 = ipv6.replace(/\b0{1,3}([0-9a-fA-F]{1,4})/g, "$1");
+
+    let bestStart = -1, bestLen = 0;
+    let curStart = -1, curLen = 0;
+
+    let arr = blocks.map(b => b === "0000");
+
+    for (let i = 0; i < arr.length; i++) {
+        if (arr[i]) {
+            if (curStart === -1) curStart = i;
+            curLen++;
+        } else {
+            if (curLen > bestLen) {
+                bestLen = curLen;
+                bestStart = curStart;
+            }
+            curStart = -1;
+            curLen = 0;
+        }
+    }
+    if (curLen > bestLen) {
+        bestLen = curLen;
+        bestStart = curStart;
+    }
+
+    if (bestLen > 1) {
+        let before = blocks.slice(0, bestStart).join(":");
+        let after = blocks.slice(bestStart + bestLen).join(":");
+        return before + "::" + after;
+    }
+
+    return blocks.join(":");
+}
+
+// IPv6 → decimal
+function ipv6ToDecimal(ip) {
     let blocks = expandIPv6(ip);
     let dec = [];
     blocks.forEach(b => {
         dec.push(parseInt(b.slice(0,2),16));
         dec.push(parseInt(b.slice(2,4),16));
     });
-    document.getElementById("out1").innerText = dec.join(".");
+    return dec.join(".");
 }
 
-function toIPv6() {
-    let dec = document.getElementById("decimal").value.split(".");
-    if (dec.length !== 16) {
-        document.getElementById("out2").innerText = "Formato inválido";
-        return;
-    }
+// decimal → IPv6 abreviada
+function decimalToIPv6(dec) {
+    let parts = dec.split(".");
     let hex = [];
-    for (let i=0; i<16; i+=2) {
+    for (let i = 0; i < 16; i += 2) {
         hex.push(
-            Number(dec[i]).toString(16).padStart(2,"0") +
-            Number(dec[i+1]).toString(16).padStart(2,"0")
+            Number(parts[i]).toString(16).padStart(2,"0") +
+            Number(parts[i+1]).toString(16).padStart(2,"0")
         );
     }
-    document.getElementById("out2").innerText = hex.join(":");
+    return compressIPv6(hex);
+}
+
+// Detección automática
+function convert() {
+    let input = document.getElementById("input").value.trim();
+
+    input = input.replace(/^BGP Status Peer\s+/i, "");
+
+    if (input.includes(":")) {
+        document.getElementById("ipv6_out").value = compressIPv6(expandIPv6(input));
+        document.getElementById("dec_out").value = ipv6ToDecimal(input);
+    }
+    else if (input.includes(".")) {
+        document.getElementById("ipv6_out").value = decimalToIPv6(input);
+        document.getElementById("dec_out").value = input;
+    }
+    else {
+        document.getElementById("ipv6_out").value = "Entrada no válida";
+        document.getElementById("dec_out").value = "";
+    }
 }
 </script>
 
