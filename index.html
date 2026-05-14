@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Conversor BGP IPv6</title>
+  <title>Conversor BGP ↔ IPv6</title>
 
   <style>
     :root {
@@ -15,6 +15,7 @@
       --accent: #3b82f6;
       --accent-hover: #2563eb;
       --ok: #10b981;
+      --error: #ef4444;
     }
 
     * {
@@ -35,43 +36,45 @@
 
     .container {
       width: 100%;
-      max-width: 900px;
-      background: rgba(17, 24, 39, 0.95);
+      max-width: 950px;
+      background: rgba(17, 24, 39, 0.96);
       border: 1px solid var(--border);
-      border-radius: 16px;
+      border-radius: 18px;
       padding: 30px;
-      box-shadow: 0 0 30px rgba(0,0,0,0.5);
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
     }
 
     h1 {
       margin-top: 0;
       text-align: center;
       color: white;
+      font-size: 42px;
     }
 
     p {
-      color: var(--muted);
       text-align: center;
+      color: var(--muted);
       margin-bottom: 25px;
+      font-size: 18px;
     }
 
     textarea {
       width: 100%;
-      min-height: 140px;
+      min-height: 180px;
       resize: vertical;
       background: #020617;
       color: white;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 15px;
-      font-size: 15px;
-      line-height: 1.5;
+      border: 2px solid #1d4ed8;
+      border-radius: 14px;
+      padding: 18px;
+      font-size: 16px;
+      line-height: 1.6;
       outline: none;
     }
 
     textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59,130,246,0.25);
     }
 
     .buttons {
@@ -85,9 +88,9 @@
       flex: 1;
       min-width: 200px;
       border: none;
-      border-radius: 10px;
-      padding: 14px;
-      font-size: 16px;
+      border-radius: 12px;
+      padding: 15px;
+      font-size: 17px;
       cursor: pointer;
       transition: 0.2s;
       font-weight: bold;
@@ -100,6 +103,7 @@
 
     .convert:hover {
       background: var(--accent-hover);
+      transform: translateY(-2px);
     }
 
     .clear {
@@ -115,21 +119,26 @@
       margin-top: 25px;
       background: #020617;
       border: 1px solid var(--border);
-      border-radius: 10px;
+      border-radius: 14px;
       padding: 20px;
     }
 
     .label {
       color: var(--muted);
-      margin-bottom: 10px;
-      font-size: 14px;
+      margin-bottom: 12px;
+      font-size: 15px;
     }
 
     .output {
-      font-size: 20px;
+      font-size: 28px;
       font-weight: bold;
       color: var(--ok);
       word-break: break-word;
+      font-family: Consolas, monospace;
+    }
+
+    .error {
+      color: var(--error);
     }
 
     .example {
@@ -137,22 +146,35 @@
       font-size: 14px;
       color: var(--muted);
       background: rgba(255,255,255,0.03);
-      border-radius: 10px;
-      padding: 15px;
+      border-radius: 12px;
+      padding: 18px;
+      line-height: 1.8;
     }
 
     code {
       color: #93c5fd;
+      word-break: break-all;
+    }
+
+    @media (max-width: 700px) {
+      h1 {
+        font-size: 30px;
+      }
+
+      .output {
+        font-size: 22px;
+      }
     }
   </style>
 </head>
 <body>
 
 <div class="container">
+
   <h1>Conversor BGP ↔ IPv6</h1>
 
   <p>
-    Convierte automáticamente entre formato BGP Status Peer y dirección IPv6 abreviada.
+    Convierte automáticamente líneas BGP a IPv6 abreviada y viceversa.
   </p>
 
   <textarea id="input" placeholder="Pega aquí una línea BGP o una IPv6..."></textarea>
@@ -189,12 +211,17 @@
 
     <br><br>
 
-    <code>fd00:0:1:ab::2</code>
+    <code>
+      fd00:0:1:ab::2
+    </code>
   </div>
+
 </div>
-  
+
 <script>
+
   function compressIPv6(groups) {
+
     let bestStart = -1;
     let bestLen = 0;
 
@@ -202,14 +229,19 @@
     let len = 0;
 
     for (let i = 0; i < groups.length; i++) {
+
       if (groups[i] === "0") {
+
         if (start === -1) start = i;
         len++;
+
       } else {
+
         if (len > bestLen) {
           bestStart = start;
           bestLen = len;
         }
+
         start = -1;
         len = 0;
       }
@@ -221,6 +253,7 @@
     }
 
     if (bestLen > 1) {
+
       groups.splice(bestStart, bestLen, "");
 
       if (bestStart === 0) groups.unshift("");
@@ -231,49 +264,42 @@
   }
 
   function convertToIPv6() {
+
     const input = document.getElementById("input").value.trim();
     const output = document.getElementById("output");
 
     try {
 
-      // Extraer SOLO la parte numérica después de "Peer"
-      let clean = input;
+      // Sacar todos los números
+      const matches = input.match(/\d+/g);
 
-      if (clean.toLowerCase().includes("peer")) {
-        clean = clean.split(/peer/i)[1].trim();
+      if (!matches || matches.length < 16) {
+        throw new Error("No se encontraron suficientes bytes");
       }
 
-      // Obtener bytes
-      const parts = clean.split(".").filter(x => x !== "");
+      // Convertir a enteros
+      const allBytes = matches.map(v => parseInt(v, 10));
 
-      if (parts.length !== 32) {
-        throw new Error(
-          "Se esperaban 32 bytes IPv6 y llegaron " + parts.length
-        );
-      }
-
-      const bytes = parts.map(n => {
-        const v = parseInt(n, 10);
-
-        if (isNaN(v) || v < 0 || v > 255) {
-          throw new Error("Byte inválido: " + n);
-        }
-
-        return v;
-      });
+      // Quedarse con los últimos 16 bytes
+      const bytes = allBytes.slice(-16);
 
       const groups = [];
 
-      for (let i = 0; i < 32; i += 2) {
+      for (let i = 0; i < 16; i += 2) {
+
         const value = (bytes[i] << 8) | bytes[i + 1];
+
         groups.push(value.toString(16));
       }
 
       const ipv6 = compressIPv6(groups);
 
+      output.classList.remove("error");
       output.textContent = ipv6;
 
     } catch (e) {
+
+      output.classList.add("error");
       output.textContent = "Error: " + e.message;
     }
   }
@@ -299,6 +325,7 @@
   }
 
   function convertToBGP() {
+
     const input = document.getElementById("input").value.trim();
     const output = document.getElementById("output");
 
@@ -316,26 +343,36 @@
 
         const value = parseInt(group || "0", 16);
 
-        if (isNaN(value) || value < 0 || value > 0xffff) {
-          throw new Error("Grupo IPv6 inválido: " + group);
+        if (isNaN(value) || value < 0 || value > 65535) {
+          throw new Error("Grupo IPv6 inválido");
         }
 
         bytes.push((value >> 8) & 0xff);
         bytes.push(value & 0xff);
       }
 
+      output.classList.remove("error");
+
       output.textContent =
         "BGP Status Peer " + bytes.join(".");
 
     } catch (e) {
+
+      output.classList.add("error");
       output.textContent = "Error: " + e.message;
     }
   }
 
   function clearAll() {
+
     document.getElementById("input").value = "";
-    document.getElementById("output").textContent = "---";
+
+    const output = document.getElementById("output");
+
+    output.classList.remove("error");
+    output.textContent = "---";
   }
+
 </script>
 
 </body>
